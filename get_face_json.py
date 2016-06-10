@@ -19,17 +19,25 @@ for search_term in search_terms:
         for page in range(current_page,last_page+1):
             print "Page %s of %s" %(page,last_page)
             time.sleep(0.5)
-            url = "http://www.loc.gov/pictures/search/?q=%s&sp=%s" %(search_term,page)
+            url = "http://www.loc.gov/pictures/search/?q=%s&sp=%s&fo=json" %(search_term,page)
             response = requests.get(url)
-            if "results" in response:
-                results = response['results']
-                images = parse_results(results,images)
+            if response.status_code == 200:
+                response = response.json()
+                if "results" in response:
+                    results = response['results']
+                    images = parse_results(results,images)
         
 def parse_results(results,images):
     for result in results:
         if result['pk'] not in images:
             images[result['pk']] = result
     return images
+
+def save_json(json_obj,output_file):
+    filey = open(output_file,'wb')
+    filey.write(json.dumps(json_obj, sort_keys=True,indent=4, separators=(',', ': ')))
+    filey.close()
+    return output_file
 
 
 # Save the json to file
