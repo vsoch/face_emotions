@@ -4,7 +4,7 @@ The code in this repo will extract face/portrait images from the library of Cong
 
 - Sign up for a Microsoft API key [here](https://www.microsoft.com/cognitive-services/en-us/emotion-api). You will need an account.
 - Save this key in a file in the PWD called `.secret`. An example `.secret_dummy` is provided.
-- If you want to update / produce your own data set (a json object of library of congress images) you can run [get_face_json.py](get_face_json.py). Otherwise, just use the script run.py.
+- The [loc_images.json](loc_images.json) provided is a small sample of data, to account for the fact that Github file size limit is 50MB. If you want to update / produce your own data set (a json object of library of congress images) you can run [get_face_json.py](get_face_json.py). Otherwise, just use the sample with the script [run.py](run.py).
 
 **rest is currently under development!** :)
 
