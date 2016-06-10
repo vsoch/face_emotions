@@ -41,4 +41,4 @@ def save_json(json_obj,output_file):
 
 
 # Save the json to file
-save_json(results,"loc_images.json")
+save_json(images,"loc_images.json")
