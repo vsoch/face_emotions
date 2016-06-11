@@ -59,17 +59,26 @@ min_height=300
 
 # Subset to large images with faces
 faces = dict()
+seen = []
+skipped = []
 for image_key,image in images.iteritems():
 
-    image_url = "http:%s" %image['image']['full'] 
-    size,dims = getsizes(image_url)
-    # Is it big enough?
-    if dims[0] <= min_width or dims[1] <= min_height:
-        print "Image %s has size %s, skipping!" %(image['title'],dims)
-    else:
-        if has_face(face_cascade,image_url):
-            print "Found face! %s" %(image['title']) 
-            faces[image_key] = image
-
+    if image_key not in faces and image_key not in seen and image_key not in skipped:
+        image_url = "http:%s" %image['image']['full'] 
+        try:
+            size,dims = getsizes(image_url)
+            seen.append(image_key)
+            if dims!= None:
+                # Is it big enough? (too small if one diension < min)
+                if dims[0] <= min_width and dims[1] <= min_height:
+                    print "SKIPPING image %s with size %s" %(image['title'],dims)
+                else:
+                    if has_face(face_cascade,image_url):
+                        print "FOUND FACE! %s" %(image['title']) 
+                        faces[image_key] = image
+        except:
+            skipped.append(image_key)
+            print "ERROR with image %s" %(image['title'])
+        
 
 save_json(faces,"loc_faces.json")
