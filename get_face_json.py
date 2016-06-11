@@ -1,7 +1,9 @@
-
-from repofish import save_json
+from functions import url_to_image, getsizes, has_face
 import requests
 import time
+import cv2
+
+## STEP 1: Search for images using face terms ##########################################
 
 search_terms = ["face","portrait","man","woman"]
 
@@ -41,4 +43,33 @@ def save_json(json_obj,output_file):
 
 
 # Save the json to file
-save_json(images,"loc_images.json")
+save_json(images,"loc.json")
+
+
+## STEP 2: Subset to images that likey have faces ######################################
+
+# FaceDetect haar cascade file for opencv
+cascade_file = "FaceDetect/haarcascade_frontalface_default.xml"
+
+# Create the haar cascade
+face_cascade = cv2.CascadeClassifier(cascade_file)
+
+min_width=300
+min_height=300
+
+# Subset to large images with faces
+faces = dict()
+for image_key,image in images.iteritems():
+
+    image_url = "http:%s" %image['image']['full'] 
+    size,dims = getsizes(image_url)
+    # Is it big enough?
+    if dims[0] <= min_width or dims[1] <= min_height:
+        print "Image %s has size %s, skipping!" %(image['title'],dims)
+    else:
+        if has_face(face_cascade,image_url):
+            print "Found face! %s" %(image['title']) 
+            faces[image_key] = image
+
+
+save_json(faces,"loc_faces.json")
