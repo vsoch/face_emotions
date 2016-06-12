@@ -1,4 +1,4 @@
-from functions import url_to_image, getsizes, has_face
+from functions import url_to_image, getsizes, has_face, parse_results, save_json
 import requests
 import time
 import cv2
@@ -29,19 +29,6 @@ for search_term in search_terms:
                     results = response['results']
                     images = parse_results(results,images)
         
-def parse_results(results,images):
-    for result in results:
-        if result['pk'] not in images:
-            images[result['pk']] = result
-    return images
-
-def save_json(json_obj,output_file):
-    filey = open(output_file,'wb')
-    filey.write(json.dumps(json_obj, sort_keys=True,indent=4, separators=(',', ': ')))
-    filey.close()
-    return output_file
-
-
 # Save the json to file
 save_json(images,"loc.json")
 

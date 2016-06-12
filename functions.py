@@ -1,6 +1,7 @@
 import ImageFile
 import urllib
 import numpy
+import json
 import cv2
 
 ## FUNCTIONS #########################################################################
@@ -48,4 +49,18 @@ def url_to_image(url):
     image = numpy.asarray(bytearray(resp.read()), dtype="uint8")
     image = cv2.imdecode(image, cv2.IMREAD_COLOR)
     return image
+
+
+def parse_results(results,images):
+    for result in results:
+        if result['pk'] not in images:
+            images[result['pk']] = result
+    return images
+
+
+def save_json(json_obj,output_file):
+    filey = open(output_file,'wb')
+    filey.write(json.dumps(json_obj, sort_keys=True,indent=4, separators=(',', ': ')))
+    filey.close()
+    return output_file
 

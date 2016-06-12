@@ -2,6 +2,7 @@
 # Use Microsoft Emotions API to categorize emotions, upload tags to
 # Airtable database. The user can provide an image on command line
 
+from functions import save_json
 import requests
 import pandas
 import numpy
@@ -59,3 +60,5 @@ for image_pk,image in images.iteritems():
 
         count+=1
         time.sleep(3.0) # only 30 per minute
+
+save_json(emotions,"loc_emotions.json")
