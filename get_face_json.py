@@ -80,5 +80,4 @@ for image_key,image in images.iteritems():
             skipped.append(image_key)
             print "ERROR with image %s" %(image['title'])
         
-
 save_json(faces,"loc_faces.json")
