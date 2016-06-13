@@ -1,7 +1,7 @@
 #####################################################################
-# Use Microsoft Emotions API to categorize emotions, upload tags to
-# Airtable database. The user can provide an image on command line
+# Use Microsoft Emotions API to categorize emotions
 
+from requests.adapters import ConnectionError
 from functions import save_json
 import requests
 import pandas
@@ -14,11 +14,6 @@ import os
 
 
 ## VARIABLES #########################################################################
-
-database_file = ".database_credentials"
-json_save = True
-if os.path.exists(database_file):
-    json_save = False
 
 # Does the emotion api key file exist?
 # Emotion - Preview	30,000 transactions per month, 20 per minute.
@@ -51,12 +46,17 @@ for image_pk,image in images.iteritems():
         print "Parsing %s of %s: %s" %(count,limit,image_title)
         image_url = "http:%s" %image['image']['full'] 
         body = {'url':image_url}
-        response = requests.post(emo_url, headers=headers, data=json.dumps(body))
 
-        if response.status_code == 200 and response.text != '[]':
-            face_emotions = response.json()[0]
-            face_emotions["image"] = image
-            emotions[image_pk] = face_emotions 
+        try:
+            response = requests.post(emo_url, headers=headers, data=json.dumps(body))
+
+            if response.status_code == 200 and response.text != '[]':
+                face_emotions = response.json()[0]
+                face_emotions["image"] = image
+                emotions[image_pk] = face_emotions 
+
+        except ConnectionError:
+            pass
 
         count+=1
         time.sleep(3.0) # only 30 per minute
