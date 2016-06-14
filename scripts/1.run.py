@@ -33,7 +33,7 @@ emo_url = 'https://api.projectoxford.ai/emotion/v1.0/recognize'
 headers = {'Content-Type':'application/json','Ocp-Apim-Subscription-Key':api_key}
 
 # Define image source, these have been filtered for faces and size
-images = json.load(open("loc_faces.json","rb"))
+images = json.load(open("data/loc_faces.json","rb"))
 
 emotions = dict()
 
@@ -61,4 +61,4 @@ for image_pk,image in images.iteritems():
         count+=1
         time.sleep(3.0) # only 30 per minute
 
-save_json(emotions,"loc_emotions.json")
+save_json(emotions,"data/loc_emotions.json")
