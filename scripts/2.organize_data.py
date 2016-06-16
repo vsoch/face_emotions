@@ -1,5 +1,6 @@
 # Subset data to things we need, obtain additional info about things
 
+from functions import save_json
 import pandas
 import json
 import re
@@ -18,9 +19,13 @@ columns = ['title','creator','published_date','url_thumbnail','url_full','url_sq
 image_df = pandas.DataFrame(columns=columns)
 emotion_df = pandas.DataFrame(columns=emotion_columns)
 
-# We will keep track of dates and subjects
-date_list = []
-subject_list = []
+# Dates and subject should be dictionary
+dates_dict = dict()
+subjects_dict = dict()
+
+###################################################################################
+# FUNCTIONS #######################################################################
+###################################################################################
 
 # Function to parse dates from subjects list
 def get_dates(subjects):
@@ -29,6 +34,20 @@ def get_dates(subjects):
     # We only want to match date ranges in format [XXXX-XXXX]
     dates = [re.findall("[0-9]{4}-[0-9]{4}",x)[0] for x in dates if len(re.findall("[0-9]{4}-[0-9]{4}",x)) > 0]
     return dates
+
+# Function to add uid to each of list of keys in dictionary
+def add_to_dict(dictionary,keys,value):
+    for key in keys:
+        if key not in dictionary:
+            dictionary[key] = [value]
+        else:
+            dictionary[key].append(value)
+    return dictionary
+
+
+###################################################################################
+# PARSING #########################################################################
+###################################################################################
 
 count = 1
 for image_uid,image in emotions.iteritems():
@@ -44,7 +63,8 @@ for image_uid,image in emotions.iteritems():
     # Parse dates from subjects, add to list
     if subjects != None:
         dates = get_dates(subjects)
-        [date_list.append(d) for d in dates if d not in date_list]
+        dates_dict = add_to_dict(dates_dict,dates,image_uid)
+
         # This will get highest level of subjects
         subjects = [x.split('--')[0].lower() for x in subjects]
     else:
@@ -54,7 +74,7 @@ for image_uid,image in emotions.iteritems():
     # format seems to be type: material : size
     medium_tags = [tag.strip().replace(".","") for tag in image['image']['medium'].split(":")]
     subjects = numpy.unique(subjects + medium_tags).tolist()
-    [subject_list.append(s) for s in subjects if s not in subject_list]
+    subjects_dict = add_to_dict(subjects_dict,subjects,image_uid)
 
     # Finally, image meta data
     image_df.loc[image_uid,columns] = [image['image']['title'],
@@ -74,37 +94,5 @@ for image_uid,image in emotions.iteritems():
 # Save the data frames and then free up memory
 image_df.to_csv('../data/image_df.tsv',sep="\t",encoding='utf-8')
 emotion_df.to_csv('../data/emotion_df.tsv',sep="\t")
-
-del image_df
-del emotion_df
-
-# Now generate subject and dates data frames
-subject_df = pandas.DataFrame(columns=subject_list)
-dates_df = pandas.DataFrame(columns=date_list)
-
-count = 1
-for image_uid,image in emotions.iteritems():
-    print "Parsing %s of %s" %(count,len(emotions))
-
-    # Subjects
-    subjects = image['image']['subjects']
-    
-    # Parse dates from subjects, add to list
-    if subjects != None:
-        dates = get_dates(subjects)
-        dates_df.loc[image_uid,dates] = 1
-        # This will get highest level of subjects
-        subjects = [x.split('--')[0].lower() for x in subjects]
-    else:
-        subjects = []
-     
-    # turn medium_brief into features (subject tag)
-    # format seems to be type: material : size
-    medium_tags = [tag.strip().replace(".","") for tag in image['image']['medium'].split(":")]
-    subjects = numpy.unique(subjects + medium_tags).tolist()
-    subject_df.loc[image_uid,subjects] = subjects
-    
-    count+=1    
-
-subject_df.to_csv('../data/subjects_df.tsv',sep="\t",encoding='utf-8')
-dates_df.to_csv('../data/dates_df.tsv',sep='\t')
+save_json(subjects_dict,'../data/subjects.json')
+save_json(dates_dict,'../data/dates.json')
