@@ -21,7 +21,6 @@ class EmotionServer(Flask):
         self.meta = pandas.read_csv('data/image_df.tsv',sep="\t",index_col=0)
         self.dates = json.load(open('data/dates.json','rb'))
         
-
         # Use Kmeans to cluster, cosine distance to generate graph/plot
         self.centers = [[1,0,0,0,0,0,0,0], # anger
                         [0,1,0,0,0,0,0,0], # contempt
@@ -44,8 +43,7 @@ class EmotionServer(Flask):
         self.cluster = KMeans(n_clusters=len(self.centers),init=numpy.array(self.centers))
         self.cluster.fit(self.emotions)
         self.assignments = self.cluster.labels_
-        self.mapping = pandas.read_csv('data/mds_mapping_euclidean.tsv',sep="\t") # columns [x,y]
-        self.mapping.columns = ['uid','x','y']
+        self.mapping = pandas.read_csv('data/mds_mapping.tsv',sep="\t") # columns [x,y]
 
 # Start application
 app = EmotionServer(__name__)
@@ -61,9 +59,19 @@ def index():
  
     # The last 7 are our emotions
     lookup = [{"id":mapping.uid[x],"color":app.colors[app.assignments[x]]} for x in mapping.index[len(mapping.index)-len(app.centers):]]
+
+    # Get min and max dates
+    date_keys = app.dates.keys()
+    date_keys.sort()
+    min_date = "%s-01-01" %date_keys[0].split('-')[0]
+    max_date = "%s-12-25" %date_keys[-1].split('-')[1]
+
     mapping['colors'] = [app.colors[x] for x in app.assignments.tolist()]
     return render_template("index.html",coords=mapping.to_json(orient="records"),
-                                        lookup=lookup)
+                                        lookup=lookup,
+                                        dates=app.dates,
+                                        min_date=min_date,
+                                        max_date=max_date)
 
 @app.route("/login",methods=["POST","GET"])
 def login():

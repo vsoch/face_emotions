@@ -23,9 +23,20 @@ similarities = pandas.DataFrame(pairwise_distances(emotions,metric='euclidean'))
 similarities.index = emotions.index
 similarities.columns = emotions.index
 
-mds = manifold.MDS(n_components=3, dissimilarity="precomputed")
-results = mds.fit(similarities)
-mapping  = pandas.DataFrame(results.embedding_)
-mapping.columns = ['x','y','z']
-mapping.index = emotions.index
-mapping.to_csv('../data/mds_mapping_3d.tsv',sep="\t")
+# try 2d and 3d MDS
+dims = [2,3]
+column_names = ['x','y','z']
+for dim in dims:
+    mds = manifold.MDS(n_components=dim, dissimilarity="precomputed")
+    results = mds.fit(similarities)
+    mapping  = pandas.DataFrame(results.embedding_)
+    mapping.columns = column_names[0:dim]
+    mapping.index = emotions.index
+    mapping.to_csv('../data/mds_mapping_%sd.tsv' %(dim),sep="\t")
+
+# TSNE might be better, we just want good groupings, not necessarily to preserve distances
+tsne = manifold.TSNE(n_components=2, random_state=0)
+result = pandas.DataFrame(tsne.fit_transform(emotions))
+result['uid'] = emotions.index
+result.columns = ['x','y','uid']
+result.to_csv('../data/mds_mapping.tsv',sep="\t")

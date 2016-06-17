@@ -24,6 +24,43 @@ body {
   width: 200px;
   height: 28px;
   pointer-events: none;
+
+p {
+  color: white;
+  margin: 50px;
+}
+
+a {
+  color: #4FDEF2;
+}
+
+/* Slider styling */
+.axis {
+  fill: gray;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.axis .halo {
+  stroke: gray;
+  stroke-width: 4px;
+  stroke-linecap: round;
+}
+
+.slider .handle path {
+  stroke: white;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.slider .handle text {
+  fill: white;
+  text-align: center;
+  font-size: 18px;
+}
+
 }
 </style>
 <body>
@@ -145,6 +182,99 @@ $.each(lookup,function(i,e){
     d3.select("." + e.id)
        .style('r','10px')
 });
+
+// Date slider
+formatDate = d3.time.format("%b %Y");
+
+// scale function
+var timeScale = d3.time.scale()
+  .domain([new Date('{{ min_date }}'),new Date('{{ max_date }}')])
+  .range([0, width])
+  .clamp(true);
+
+// initial value
+var startValue = timeScale(new Date('2000-03-20'));
+var endValue = timeScale(new Date('2012-03-20'));
+var sliderHeight = 50;
+startingValue = new Date('2012-03-20');
+
+//////////
+
+// defines brush
+var brush = d3.svg.brush()
+  .x(timeScale)
+  .extent([startingValue, endValue])
+  .on("brush", brushed);
+
+var svgd = d3.select("body").append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", sliderHeight + 50 + margin.top + margin.bottom)
+  .append("g")
+  // classic transform to position g
+  .attr("transform", "translate(" + margin.left + "," + sliderHeight + ")");
+
+svgd.append("defs").append("clipPath")
+    .attr("id", "clip")
+  .append("rect")
+    .attr("width", width)
+    .attr("height", sliderHeight);
+
+svgd.append("g")
+    .attr("class", "x axis")
+    // put in middle of screen
+    .attr("transform", "translate(0," + sliderHeight + ")")
+
+// inroduce axis
+.call(d3.svg.axis()
+    .scale(timeScale)
+    .orient("bottom")
+    .tickFormat(function(d) {
+        return formatDate(d);
+    })
+    .tickSize(0)
+    .tickPadding(12)
+    .tickValues([timeScale.domain()[0], timeScale.domain()[1]]))
+    .select(".domain")
+    .select(function() {
+       console.log(this);
+       return this.parentNode.appendChild(this.cloneNode(true));
+     })
+    .attr("class", "halo");
+
+var slider = svgd.append("g")
+  .attr("class", "slider context")
+  .call(brush)
+ .selectAll("rect")
+   .attr("y", -6)
+   .attr("height", sliderHeight + 7);
+
+slider.select(".background")
+  .attr("height", sliderHeight);
+
+var handle = slider.append("g")
+  .attr("class", "handle")
+
+handle.append("path")
+  .attr("transform", "translate(0," + sliderHeight + ")")
+  .attr("d", "M 0 -20 V 20")
+
+handle.append('text')
+  .text(startingValue)
+  .attr("transform", "translate(" + (-18) + " ," + (sliderHeight - 25) + ")");
+
+slider
+  .call(brush.event)
+
+
+function brushed() {
+  var value = brush.extent()[0];
+  if (d3.event.sourceEvent) { // not a programmatic event
+    value = timeScale.invert(d3.mouse(this)[0]);
+  }
+  timeScale.domain(brush.empty() ? timeScale.domain() : brush.extent());
+  handle.select('text').text(formatDate(value));
+  handle.attr("transform", "translate(" + timeScale(value) + ",0)");
+}
 
 </script>
 </body>
