@@ -24,6 +24,7 @@ body {
   width: 200px;
   height: 28px;
   pointer-events: none;
+}
 
 p {
   color: white;
@@ -44,7 +45,7 @@ a {
 
 .axis .halo {
   stroke: gray;
-  stroke-width: 4px;
+  stroke-width: 2px;
   stroke-linecap: round;
 }
 
@@ -61,7 +62,6 @@ a {
   font-size: 18px;
 }
 
-}
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -204,7 +204,7 @@ startingValue = new Date('2012-03-20');
 var brush = d3.svg.brush()
   .x(timeScale)
   .extent([startingValue, endValue])
-  .on("brush", brushed);
+      .on("brush", brushed)
 
 var svgd = d3.select("body").append("svg")
   .attr("width", width + margin.left + margin.right)
@@ -265,17 +265,24 @@ handle.append('text')
 slider
   .call(brush.event)
 
-
 function brushed() {
   var value = brush.extent()[0];
   if (d3.event.sourceEvent) { // not a programmatic event
     value = timeScale.invert(d3.mouse(this)[0]);
   }
+
+  // Update the date to include these dates
+  var min_date = brush.extent()[0].getFullYear()
+  var max_date = brush.extent()[1].getFullYear()
+
   timeScale.domain(brush.empty() ? timeScale.domain() : brush.extent());
   handle.select('text').text(formatDate(value));
   handle.attr("transform", "translate(" + timeScale(value) + ",0)");
 }
 
+// Make the slider look nice
+d3.select('.extent')
+    .style('opacity','0.125')
 </script>
 </body>
 </html>

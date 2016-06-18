@@ -36,6 +36,22 @@ def get_dates(subjects):
     return dates
 
 # Function to add uid to each of list of keys in dictionary
+# Also generates range of dates
+def add_date(dictionary,keys,value):
+    for key in keys:
+        date_range = key.split('-')
+        if len(date_range) > 1:
+            date_range = range(int(date_range[0]),int(date_range[1])+1)
+        else:
+            date_range = [int(date_range[0])]
+        for date_key in date_range:
+            if date_key not in dictionary:
+                dictionary[date_key] = [value]
+            else:
+                dictionary[date_key].append(value)
+    return dictionary
+
+
 def add_to_dict(dictionary,keys,value):
     for key in keys:
         if key not in dictionary:
@@ -43,7 +59,6 @@ def add_to_dict(dictionary,keys,value):
         else:
             dictionary[key].append(value)
     return dictionary
-
 
 ###################################################################################
 # PARSING #########################################################################
@@ -63,7 +78,7 @@ for image_uid,image in emotions.iteritems():
     # Parse dates from subjects, add to list
     if subjects != None:
         dates = get_dates(subjects)
-        dates_dict = add_to_dict(dates_dict,dates,image_uid)
+        dates_dict = add_date(dates_dict,dates,image_uid)
 
         # This will get highest level of subjects
         subjects = [x.split('--')[0].lower() for x in subjects]

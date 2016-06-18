@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+from flask_restful import Resource, Api
 from sklearn.cluster import KMeans
 from numpy.random import choice
 from datetime import datetime
@@ -47,6 +48,31 @@ class EmotionServer(Flask):
 
 # Start application
 app = EmotionServer(__name__)
+api = Api(app)
+
+# API VIEWS ##########################################################################################
+
+class apiIndex(Resource):
+    """apiIndex
+    Main view for REST API to display all available emotion data
+    """
+    def get(self):
+        emotion_json = app.emotions.to_dict(orient="records")
+        return emotion_json
+
+class apiQueryDates(Resource):
+    """apiQueryDates
+    return a list of ids for emotion photos between a range of dates
+    """
+    def get(self, start_year, end_year):
+        date_range = range(start_year,end_year)
+        subset = [app.dates[str(x)] for x in date_range if str(x) in app.dates]
+        subset = numpy.unique([item for sublist in subset for item in sublist]).tolist()
+        return {"ids": subset}
+              
+# Add all resources
+api.add_resource(apiIndex,'/api/emotions')
+api.add_resource(apiQueryDates,'/api/dates/<int:start_year>/<int:end_year>')
 
 # Views ##############################################################################################
 
@@ -63,10 +89,11 @@ def index():
     # Get min and max dates
     date_keys = app.dates.keys()
     date_keys.sort()
-    min_date = "%s-01-01" %date_keys[0].split('-')[0]
-    max_date = "%s-12-25" %date_keys[-1].split('-')[1]
+    min_date = "%s-01-01" %date_keys[0]
+    max_date = "%s-12-25" %date_keys[-1]
 
     mapping['colors'] = [app.colors[x] for x in app.assignments.tolist()]
+
     return render_template("index.html",coords=mapping.to_json(orient="records"),
                                         lookup=lookup,
                                         dates=app.dates,
