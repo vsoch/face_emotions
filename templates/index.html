@@ -272,8 +272,25 @@ function brushed() {
   }
 
   // Update the date to include these dates
-  var min_date = brush.extent()[0].getFullYear()
-  var max_date = brush.extent()[1].getFullYear()
+  var start_date = brush.extent()[0].getFullYear()
+  var end_date = brush.extent()[1].getFullYear()
+  var url = "/api/dates/" + start_date + "/" + end_date
+  console.log(url)
+
+  // Retrieve date list via ajax call
+  $.ajax({
+      type: "GET",
+      url: url,
+      // if this were not local, would want csrftoken here under data
+      complete: function (data, error){
+          var results = JSON.parse(data.responseText);
+          console.log(results);
+          $.each(results,function(i,e){
+              //console.log(e)
+          });
+      },
+            dataType: 'html',
+  });
 
   timeScale.domain(brush.empty() ? timeScale.domain() : brush.extent());
   handle.select('text').text(formatDate(value));

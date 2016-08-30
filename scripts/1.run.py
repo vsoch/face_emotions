@@ -36,9 +36,11 @@ headers = {'Content-Type':'application/json','Ocp-Apim-Subscription-Key':api_key
 images = json.load(open("data/loc_faces.json","rb"))
 
 emotions = dict()
-
-
 count=0
+if os.path.exists("data/loc_emotions.json"):
+    emotions = json.load(open("data/loc_emotions.json","rb"))
+    count = len(emotions)
+
 for image_pk,image in images.iteritems():
 
     if count < limit and image_pk not in emotions:
@@ -61,4 +63,7 @@ for image_pk,image in images.iteritems():
         count+=1
         time.sleep(3.0) # only 30 per minute
 
-save_json(emotions,"data/loc_emotions.json")
+        # Save json every 1000 images
+        if count % 1000 == 0:
+            print("Saving emotions data at count %s" %(count))
+            save_json(emotions,"data/loc_emotions.json")

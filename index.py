@@ -98,25 +98,7 @@ def index():
                                         lookup=lookup,
                                         dates=app.dates,
                                         min_date=min_date,
-                                        max_date=max_date)
-
-@app.route("/login",methods=["POST","GET"])
-def login():
-    '''login is the first view seen after login'''
-    
-    if request.method == "POST":
-        account = int(request.form["account_id"])
-        result = base_login(account)
-        if result["success"] == True:
-            return render_template("home.html",log=result["log"],
-                                               message=result["message"],
-                                               account_id=result["id"])  
-        else:
-            return render_template("index.html",message=result["message"])
-    else:
-        message = "You must log in first before viewing account home."
-    return render_template("index.html",message=message)
-    
+                                        max_date=max_date)    
 if __name__ == "__main__":
     app.debug = True
     app.run()
